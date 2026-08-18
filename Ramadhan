@@ -1,4 +1,4 @@
--- SCRIPT S LOGO ESP V8 FINAL - BY RAMA - BUAT DELTA
+-- SCRIPT S LOGO ESP V8.3 FIX - BY RAMA - BUAT DELTA
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
@@ -14,17 +14,20 @@ local UpDown = 0
 local ESP_Objects = {}
 local BodyGyro, BodyVelocity
 
+-- FIX BUAT DELTA: PAKE GETHUI KALO ADA
+local guiParent = gethui and gethui() or game:GetService("CoreGui")
+
 -- GUI UTAMA
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "S_Logo_GUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.DisplayOrder = 999 -- biar paling atas
-ScreenGui.Parent = game.CoreGui
+ScreenGui.DisplayOrder = 999
+ScreenGui.Parent = guiParent -- ini kuncinya
 
--- LOGO S BUNDAR KECIL YG BISA DIGESER
+-- LOGO S KECIL
 local Logo = Instance.new("TextButton")
-Logo.Size = UDim2.new(0, 42, 0, 42) -- dikecilin dari 50
+Logo.Size = UDim2.new(0, 42, 0, 42)
 Logo.Position = UDim2.new(0, 15, 0.5, -21)
 Logo.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 Logo.Text = "S"
@@ -36,7 +39,8 @@ Logo.Parent = ScreenGui
 Instance.new("UICorner", Logo).CornerRadius = UDim.new(1, 0)
 
 -- Biar bisa di geser
-local dragging, dragInput, dragStart, startPos
+local dragging = false
+local dragStart, startPos
 Logo.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
@@ -52,13 +56,13 @@ end)
 UIS.InputChanged:Connect(function(input)
 	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local delta = input.Position - dragStart
-	Logo.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		Logo.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 end)
 
--- MENU GUI - DIKECILIN BIAR PAS DI HP
+-- MENU GUI - KECIL
 local Menu = Instance.new("Frame")
-Menu.Size = UDim2.new(0, 195, 0, 305) -- dari 240x350 ke 195x305
+Menu.Size = UDim2.new(0, 195, 0, 305)
 Menu.Position = UDim2.new(0, 65, 0.5, -152)
 Menu.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 Menu.BackgroundTransparency = 0.15
@@ -83,7 +87,7 @@ Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,4)
 -- FUNGSI BUAT BIKIN TOMBOL
 local function CreateButton(text, posY)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 165, 0, 27) -- dikecilin
+	btn.Size = UDim2.new(0, 165, 0, 27)
 	btn.Position = UDim2.new(0, 15, 0, posY)
 	btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 	btn.Text = text
@@ -101,7 +105,7 @@ local NoClipBtn = CreateButton("NoClip: OFF", 68)
 local InfJumpBtn = CreateButton("Inf Jump: OFF", 98)
 local FlyBtn = CreateButton("Fly: OFF", 128)
 
--- SLIDER KECEPATAN FLY
+-- SLIDER
 local SpeedLabel = Instance.new("TextLabel")
 SpeedLabel.Size = UDim2.new(0, 165, 0, 18)
 SpeedLabel.Position = UDim2.new(0, 15, 0, 158)
@@ -130,7 +134,7 @@ SliderFill.ZIndex = 1001
 SliderFill.Parent = SpeedSlider
 Instance.new("UICorner", SliderFill).CornerRadius = UDim.new(0,4)
 
--- LIST TELEPORT PLAYERS
+-- LIST TELEPORT
 local TPLabel = Instance.new("TextLabel")
 TPLabel.Size = UDim2.new(0, 165, 0, 18)
 TPLabel.Position = UDim2.new(0, 15, 0, 192)
@@ -143,7 +147,7 @@ TPLabel.ZIndex = 1000
 TPLabel.Parent = Menu
 
 local TPList = Instance.new("ScrollingFrame")
-TPList.Size = UDim2.new(0, 165, 0, 70) -- dikecilin
+TPList.Size = UDim2.new(0, 165, 0, 70)
 TPList.Position = UDim2.new(0, 15, 0, 212)
 TPList.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
 TPList.BorderSizePixel = 0
@@ -157,7 +161,7 @@ local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Parent = TPList
 UIListLayout.Padding = UDim.new(0, 3)
 
--- CREDIT BY RAMA
+-- CREDIT
 local Credit = Instance.new("TextLabel")
 Credit.Size = UDim2.new(1, 0, 0, 14)
 Credit.Position = UDim2.new(0, 0, 1, -16)
@@ -180,13 +184,13 @@ end)
 UIS.InputChanged:Connect(function(input)
 	if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local pos = math.clamp((input.Position.X - SpeedSlider.AbsolutePosition.X) / SpeedSlider.AbsoluteSize.X, 0, 1)
-	SliderFill.Size = UDim2.new(pos, 0, 1, 0)
+		SliderFill.Size = UDim2.new(pos, 0, 1, 0)
 		FlySpeed = math.floor(pos * 200)
 		SpeedLabel.Text = "Speed: "..FlySpeed
 	end
 end)
 
--- TOMBOL NAIK TURUN BUAT MOBILE KECIL
+-- TOMBOL UP DOWN
 local UpBtn = Instance.new("TextButton")
 UpBtn.Size = UDim2.new(0, 44, 0, 44)
 UpBtn.Position = UDim2.new(1, -54, 0.75, -48)
@@ -221,7 +225,7 @@ local function ClearESP()
 	ESP_Objects = {}
 end
 
--- FUNGSI BUAT ESP 1 PLAYER
+-- FUNGSI ESP
 local function SetupESP(plr)
 	if plr == LocalPlayer then return end
 	local function onChar(char)
@@ -231,10 +235,10 @@ local function SetupESP(plr)
 		Highlight.Adornee = char
 		Highlight.FillColor = Color3.fromRGB(0, 170, 255)
 		Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-		Highlight.FillTransparency = 0.4
-		Highlight.OutlineTransparency = 0
-		Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	Highlight.Parent = game.CoreGui
+	Highlight.FillTransparency = 0.4
+	Highlight.OutlineTransparency = 0
+	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	Highlight.Parent = guiParent -- pake guiParent juga
 		table.insert(ESP_Objects, Highlight)
 	end
 	if plr.Character then onChar(plr.Character) end
@@ -272,7 +276,7 @@ Players.PlayerAdded:Connect(UpdateTPList)
 Players.PlayerRemoving:Connect(UpdateTPList)
 UpdateTPList()
 
--- FUNGSI NOCLIP
+-- NOCLIP
 RunService.Stepped:Connect(function()
 	if NoClip_On and LocalPlayer.Character then
 		for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
@@ -283,7 +287,7 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
--- FUNGSI INFINITE JUMP
+-- INF JUMP
 UIS.JumpRequest:Connect(function()
 	if InfJump_On and LocalPlayer.Character then
 		local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -291,7 +295,7 @@ UIS.JumpRequest:Connect(function()
 	end
 end)
 
--- FUNGSI FLY MOBILE
+-- FLY
 local function StartFly()
 	if not LocalPlayer.Character then return end
 	local HRP = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -319,7 +323,7 @@ end
 
 UpBtn.InputBegan:Connect(function() if Fly_On then UpDown = 1 end)
 UpBtn.InputEnded:Connect(function() UpDown = 0 end)
-DownBtn.InputBegan:Connect(function() if Fly_On then UpDown = -1 end end)
+DownBtn.InputBegan:Connect(function() if Fly_On then UpDown = -1 end)
 DownBtn.InputEnded:Connect(function() UpDown = 0 end)
 
 RunService.RenderStepped:Connect(function()
@@ -335,7 +339,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- EVENT TOMBOL MENU
+-- EVENT
 Logo.MouseButton1Click:Connect(function()
 	Menu.Visible = not Menu.Visible
 	UpdateTPList()
@@ -372,4 +376,4 @@ FlyBtn.MouseButton1Click:Connect(function()
 	if Fly_On then StartFly() else StopFly() end
 end)
 
-print("S Logo ESP V8 FINAL Loaded - by Rama")
+print("S Logo ESP V8.3 FIX Loaded - by Rama")
