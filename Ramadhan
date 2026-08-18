@@ -1,8 +1,9 @@
--- SCRIPT S LOGO ESP V7 - FLY NAIK TURUN - BUAT DELTA
+-- SCRIPT S LOGO ESP V8 - TELEPORT PLAYERS - BUAT DELTA
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 -- Variabel
 local ESP_On = false
@@ -10,7 +11,7 @@ local NoClip_On = false
 local InfJump_On = false
 local Fly_On = false
 local FlySpeed = 50
-local UpDown = 0 -- buat naik turun
+local UpDown = 0
 local ESP_Objects = {}
 local BodyGyro, BodyVelocity
 
@@ -56,10 +57,10 @@ Logo.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
 end)
 
--- MENU GUI
+-- MENU GUI - digedein lagi
 local Menu = Instance.new("Frame")
-Menu.Size = UDim2.new(0, 220, 0, 240)
-Menu.Position = UDim2.new(0, 80, 0.5, -120)
+Menu.Size = UDim2.new(0, 240, 0, 350)
+Menu.Position = UDim2.new(0, 80, 0.5, -175)
 Menu.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Menu.BackgroundTransparency = 0.1
 Menu.Visible = false
@@ -81,7 +82,7 @@ Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,4)
 -- FUNGSI BUAT BIKIN TOMBOL
 local function CreateButton(text, posY)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 190, 0, 30)
+	btn.Size = UDim2.new(0, 210, 0, 30)
 	btn.Position = UDim2.new(0, 15, 0, posY)
 	btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 	btn.Text = text
@@ -100,7 +101,7 @@ local FlyBtn = CreateButton("Fly: OFF", 145)
 
 -- SLIDER KECEPATAN FLY
 local SpeedLabel = Instance.new("TextLabel")
-SpeedLabel.Size = UDim2.new(0, 190, 0, 20)
+SpeedLabel.Size = UDim2.new(0, 210, 0, 20)
 SpeedLabel.Position = UDim2.new(0, 15, 0, 180)
 SpeedLabel.BackgroundTransparency = 1
 SpeedLabel.Text = "Fly Speed: 50"
@@ -110,7 +111,7 @@ SpeedLabel.TextScaled = true
 SpeedLabel.Parent = Menu
 
 local SpeedSlider = Instance.new("TextButton")
-SpeedSlider.Size = UDim2.new(0, 190, 0, 10)
+SpeedSlider.Size = UDim2.new(0, 210, 0, 10)
 SpeedSlider.Position = UDim2.new(0, 15, 0, 205)
 SpeedSlider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 SpeedSlider.Text = ""
@@ -124,16 +125,41 @@ SliderFill.BorderSizePixel = 0
 SliderFill.Parent = SpeedSlider
 Instance.new("UICorner", SliderFill).CornerRadius = UDim.new(0,5)
 
+-- LIST TELEPORT PLAYERS
+local TPLabel = Instance.new("TextLabel")
+TPLabel.Size = UDim2.new(0, 210, 0, 20)
+TPLabel.Position = UDim2.new(0, 15, 0, 225)
+TPLabel.BackgroundTransparency = 1
+TPLabel.Text = "Teleport Players:"
+TPLabel.TextColor3 = Color3.new(1,1,1)
+TPLabel.Font = Enum.Font.GothamBold
+TPLabel.TextScaled = true
+TPLabel.Parent = Menu
+
+local TPList = Instance.new("ScrollingFrame")
+TPList.Size = UDim2.new(0, 210, 0, 90)
+TPList.Position = UDim2.new(0, 15, 0, 250)
+TPList.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TPList.BorderSizePixel = 0
+TPList.ScrollBarThickness = 4
+TPList.CanvasSize = UDim2.new(0, 0, 0, 0)
+TPList.Parent = Menu
+Instance.new("UICorner", TPList).CornerRadius = UDim.new(0,6)
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = TPList
+UIListLayout.Padding = UDim.new(0, 5)
+
 -- FUNGSI SLIDER
 local sliding = false
 SpeedSlider.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		sliding = true
+	sliding = true
 	end
 end)
 UIS.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		sliding = false
+	sliding = false
 	end
 end)
 UIS.InputChanged:Connect(function(input)
@@ -141,7 +167,7 @@ UIS.InputChanged:Connect(function(input)
 		local pos = math.clamp((input.Position.X - SpeedSlider.AbsolutePosition.X) / SpeedSlider.AbsoluteSize.X, 0, 1)
 		SliderFill.Size = UDim2.new(pos, 0, 1, 0)
 		FlySpeed = math.floor(pos * 200)
-	SpeedLabel.Text = "Fly Speed: "..FlySpeed
+		SpeedLabel.Text = "Fly Speed: "..FlySpeed
 	end
 end)
 
@@ -184,19 +210,51 @@ local function SetupESP(plr)
 	local function onChar(char)
 		task.wait(0.5)
 		local Highlight = Instance.new("Highlight")
-	Highlight.Name = "ESP_Highlight"
-		Highlight.Adornee = char
-		Highlight.FillColor = Color3.fromRGB(0, 170, 255)
-	Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+		Highlight.Name = "ESP_Highlight"
+	Highlight.Adornee = char
+	Highlight.FillColor = Color3.fromRGB(0, 170, 255)
+		Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
 		Highlight.FillTransparency = 0.4
 		Highlight.OutlineTransparency = 0
 		Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-		Highlight.Parent = game.CoreGui
+	Highlight.Parent = game.CoreGui
 		table.insert(ESP_Objects, Highlight)
 	end
 	if plr.Character then onChar(plr.Character) end
 	plr.CharacterAdded:Connect(onChar)
 end
+
+-- FUNGSI UPDATE LIST TELEPORT
+local function UpdateTPList()
+	for _,child in pairs(TPList:GetChildren()) do
+		if child:IsA("TextButton") then child:Destroy() end
+	end
+	
+	for _,plr in pairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer then
+			local btn = Instance.new("TextButton")
+			btn.Size = UDim2.new(1, -10, 0, 25)
+			btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+			btn.Text = plr.Name
+			btn.TextColor3 = Color3.new(1,1,1)
+			btn.Font = Enum.Font.Gotham
+			btn.TextScaled = true
+			btn.Parent = TPList
+			Instance.new("UICorner", btn).CornerRadius = UDim.new(0,4)
+			
+			btn.MouseButton1Click:Connect(function()
+				if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character then
+					LocalPlayer.Character:SetPrimaryPartCFrame(plr.Character.HumanoidRootPart.CFrame + Vector3.new(3,0,0))
+				end
+			end)
+		end
+	end
+	TPList.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+end
+
+Players.PlayerAdded:Connect(UpdateTPList)
+Players.PlayerRemoving:Connect(UpdateTPList)
+UpdateTPList()
 
 -- FUNGSI NOCLIP
 RunService.Stepped:Connect(function()
@@ -248,7 +306,6 @@ local function StopFly()
 	UpDown = 0
 end
 
--- Event tombol naik turun
 UpBtn.InputBegan:Connect(function() if Fly_On then UpDown = 1 end end)
 UpBtn.InputEnded:Connect(function() UpDown = 0 end)
 DownBtn.InputBegan:Connect(function() if Fly_On then UpDown = -1 end end)
@@ -270,6 +327,7 @@ end)
 -- EVENT TOMBOL MENU
 Logo.MouseButton1Click:Connect(function()
 	Menu.Visible = not Menu.Visible
+	UpdateTPList() -- refresh list tiap buka menu
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
@@ -282,7 +340,7 @@ ESPBtn.MouseButton1Click:Connect(function()
 	ESPBtn.BackgroundColor3 = ESP_On and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(0, 170, 255)
 	if ESP_On then
 		for _,plr in pairs(Players:GetPlayers()) do SetupESP(plr) end
-		Players.PlayerAdded:Connect(SetupESP)
+	Players.PlayerAdded:Connect(SetupESP)
 	else
 		ClearESP()
 	end
@@ -311,4 +369,4 @@ FlyBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-print("S Logo ESP V7 Loaded - Fly bisa naik turun")
+print("S Logo ESP V8 Loaded - + Teleport Players")
