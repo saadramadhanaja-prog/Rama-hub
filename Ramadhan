@@ -1,0 +1,137 @@
+-- SCRIPT S LOGO ESP TEMBUS TEMBOK V3 - NO LINE - BUAT DELTA
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+
+-- Variabel
+local ESP_On = false
+local ESP_Objects = {} -- buat nyimpen Highlight
+
+-- GUI UTAMA
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "S_Logo_GUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = game.CoreGui
+
+-- LOGO S BUNDAR YG BISA DIGESER
+local Logo = Instance.new("TextButton")
+Logo.Size = UDim2.new(0, 50, 0, 50)
+Logo.Position = UDim2.new(0, 20, 0.5, -25)
+Logo.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+Logo.Text = "S"
+Logo.TextColor3 = Color3.fromRGB(255, 255, 255)
+Logo.TextScaled = true
+Logo.Font = Enum.Font.GothamBold
+Logo.Parent = ScreenGui
+Logo.ZIndex = 10
+Instance.new("UICorner", Logo).CornerRadius = UDim.new(1, 0)
+
+-- Biar bisa di geser
+local dragging, dragInput, dragStart, startPos
+Logo.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = Logo.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then dragging = false end
+		end)
+	end
+end)
+UIS.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		Logo.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+Logo.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+end)
+
+-- MENU GUI
+local Menu = Instance.new("Frame")
+Menu.Size = UDim2.new(0, 220, 0, 100) -- aku kecilin karena cuma 1 tombol
+Menu.Position = UDim2.new(0, 80, 0.5, -50)
+Menu.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Menu.BackgroundTransparency = 0.1
+Menu.Visible = false
+Menu.Parent = ScreenGui
+Instance.new("UICorner", Menu).CornerRadius = UDim.new(0, 8)
+
+-- TOMBOL X
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(1, -30, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1,1,1)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextScaled = true
+CloseBtn.Parent = Menu
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,4)
+
+-- TOMBOL ESP PLAYERS
+local ESPBtn = Instance.new("TextButton")
+ESPBtn.Size = UDim2.new(0, 190, 0, 35)
+ESPBtn.Position = UDim2.new(0, 15, 0, 40)
+ESPBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+ESPBtn.Text = "ESP Players: OFF"
+ESPBtn.TextColor3 = Color3.new(1,1,1)
+ESPBtn.Font = Enum.Font.Gotham
+ESPBtn.TextScaled = true
+ESPBtn.Parent = Menu
+Instance.new("UICorner", ESPBtn).CornerRadius = UDim.new(0,6)
+
+-- FUNGSI CLEAR ESP
+local function ClearESP()
+	for _,v in pairs(ESP_Objects) do
+		if v then v:Destroy() end
+	end
+	ESP_Objects = {}
+end
+
+-- FUNGSI BUAT ESP 1 PLAYER
+local function SetupESP(plr)
+	if plr == LocalPlayer then return end
+	
+	local function onChar(char)
+		task.wait(0.5)
+		
+		-- HIGHLIGHT TEMBUS TEMBOK
+		local Highlight = Instance.new("Highlight")
+	Highlight.Name = "ESP_Highlight"
+	Highlight.Adornee = char
+		Highlight.FillColor = Color3.fromRGB(0, 170, 255) -- biru
+	Highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- outline putih
+	Highlight.FillTransparency = 0.4
+	Highlight.OutlineTransparency = 0
+	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- KUNCI TEMBUS TEMBOK
+		Highlight.Parent = game.CoreGui
+		table.insert(ESP_Objects, Highlight)
+	end
+	
+	if plr.Character then onChar(plr.Character) end
+	plr.CharacterAdded:Connect(onChar)
+end
+
+-- EVENT TOMBOL
+Logo.MouseButton1Click:Connect(function()
+	Menu.Visible = not Menu.Visible -- klik logo buka/tutup
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+	Menu.Visible = false
+end)
+
+ESPBtn.MouseButton1Click:Connect(function()
+	ESP_On = not ESP_On
+	ESPBtn.Text = "ESP Players: "..(ESP_On and "ON" or "OFF")
+	
+	if ESP_On then
+		for _,plr in pairs(Players:GetPlayers()) do SetupESP(plr) end
+		Players.PlayerAdded:Connect(SetupESP)
+	else
+		ClearESP()
+	end
+end)
