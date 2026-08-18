@@ -1,4 +1,7 @@
--- SCRIPT S LOGO ESP V9 FINAL - BY RAMA - BUAT DELTA
+-- SCRIPT S LOGO ESP V9.2 FIX - BY RAMA
+task.wait(2)
+local success, err = pcall(function()
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
@@ -19,51 +22,64 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "S_Logo_GUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.DisplayOrder = 999 -- KUNCI BIAR PALING ATAS
 ScreenGui.Parent = game.CoreGui
 
--- LOGO S KECIL BISA DIGESER
+-- FRAME LOGO BIAR GAMPANG DI DRAG
+local LogoFrame = Instance.new("Frame")
+LogoFrame.Size = UDim2.new(0, 45, 0, 45)
+LogoFrame.Position = UDim2.new(0, 15, 0.5, -22)
+LogoFrame.BackgroundTransparency = 1
+LogoFrame.Parent = ScreenGui
+LogoFrame.ZIndex = 999
+
+-- LOGO S BISA DI KLIK
 local Logo = Instance.new("TextButton")
-Logo.Size = UDim2.new(0, 40, 0, 40) -- dikecilin
-Logo.Position = UDim2.new(0, 15, 0.5, -20)
+Logo.Size = UDim2.new(1, 0, 1, 0)
 Logo.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 Logo.Text = "S"
 Logo.TextColor3 = Color3.fromRGB(255, 255, 255)
 Logo.TextScaled = true
 Logo.Font = Enum.Font.GothamBold
-Logo.Parent = ScreenGui
-Logo.ZIndex = 10
+Logo.Parent = LogoFrame
+Logo.ZIndex = 1000 -- PALING ATAS
+Logo.AutoButtonColor = false
 Instance.new("UICorner", Logo).CornerRadius = UDim.new(1, 0)
 
--- Drag Logo
-local dragging, dragInput, dragStart, startPos
+-- DRAG LOGO - VERSI FIX MOBILE
+local dragging = false
+local dragStart, startPos
+
 Logo.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		dragStart = input.Position
-		startPos = Logo.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then dragging = false end
-		end)
+		startPos = LogoFrame.Position
 	end
 end)
+
+Logo.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
 UIS.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local delta = input.Position - dragStart
-		Logo.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		LogoFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
-end)
-Logo.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
 end)
 
 -- MENU GUI - LEBIH KECIL & RAPIH
 local Menu = Instance.new("Frame")
-Menu.Size = UDim2.new(0, 200, 0, 320) -- dikecilin
-Menu.Position = UDim2.new(0, 65, 0.5, -160)
+Menu.Size = UDim2.new(0, 200, 0, 320)
+Menu.Position = UDim2.new(0, 70, 0.5, -160)
 Menu.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Menu.BackgroundTransparency = 0.2
 Menu.Visible = false
 Menu.Parent = ScreenGui
+Menu.ZIndex = 999
 Instance.new("UICorner", Menu).CornerRadius = UDim.new(0, 10)
 
 -- TOMBOL X
@@ -75,6 +91,7 @@ CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.new(1,1,1)
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.TextScaled = true
+CloseBtn.ZIndex = 1000
 CloseBtn.Parent = Menu
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,4)
 
@@ -88,18 +105,20 @@ Title.TextColor3 = Color3.fromRGB(0, 170, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextScaled = true
 Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 1000
 Title.Parent = Menu
 
 -- FUNGSI BUAT BIKIN TOMBOL
 local function CreateButton(text, posY)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 170, 0, 26) -- dikecilin
+	btn.Size = UDim2.new(0, 170, 0, 26)
 	btn.Position = UDim2.new(0, 15, 0, posY)
 	btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 	btn.Text = text
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.Font = Enum.Font.Gotham
 	btn.TextScaled = true
+	btn.ZIndex = 1000
 	btn.Parent = Menu
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,5)
 	return btn
@@ -119,6 +138,7 @@ SpeedLabel.Text = "Speed: 50"
 SpeedLabel.TextColor3 = Color3.new(1,1,1)
 SpeedLabel.Font = Enum.Font.Gotham
 SpeedLabel.TextScaled = true
+SpeedLabel.ZIndex = 1000
 SpeedLabel.Parent = Menu
 
 local SpeedSlider = Instance.new("TextButton")
@@ -126,6 +146,7 @@ SpeedSlider.Size = UDim2.new(0, 170, 0, 8)
 SpeedSlider.Position = UDim2.new(0, 15, 0, 175)
 SpeedSlider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 SpeedSlider.Text = ""
+SpeedSlider.ZIndex = 1000
 SpeedSlider.Parent = Menu
 Instance.new("UICorner", SpeedSlider).CornerRadius = UDim.new(0,4)
 
@@ -133,6 +154,7 @@ local SliderFill = Instance.new("Frame")
 SliderFill.Size = UDim2.new(0.25, 0, 1, 0)
 SliderFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 SliderFill.BorderSizePixel = 0
+SliderFill.ZIndex = 1001
 SliderFill.Parent = SpeedSlider
 Instance.new("UICorner", SliderFill).CornerRadius = UDim.new(0,4)
 
@@ -145,15 +167,17 @@ TPLabel.Text = "Players:"
 TPLabel.TextColor3 = Color3.new(1,1,1)
 TPLabel.Font = Enum.Font.GothamBold
 TPLabel.TextScaled = true
+TPLabel.ZIndex = 1000
 TPLabel.Parent = Menu
 
 local TPList = Instance.new("ScrollingFrame")
-TPList.Size = UDim2.new(0, 170, 0, 75) -- dikecilin
+TPList.Size = UDim2.new(0, 170, 0, 75)
 TPList.Position = UDim2.new(0, 15, 0, 210)
 TPList.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 TPList.BorderSizePixel = 0
 TPList.ScrollBarThickness = 3
 TPList.CanvasSize = UDim2.new(0, 0, 0, 0)
+TPList.ZIndex = 1000
 TPList.Parent = Menu
 Instance.new("UICorner", TPList).CornerRadius = UDim.new(0,5)
 
@@ -170,6 +194,7 @@ Credit.Text = "Script by Rama"
 Credit.TextColor3 = Color3.fromRGB(0, 170, 255)
 Credit.Font = Enum.Font.GothamBold
 Credit.TextScaled = true
+Credit.ZIndex = 1000
 Credit.Parent = Menu
 
 -- FUNGSI SLIDER
@@ -199,6 +224,7 @@ UpBtn.TextColor3 = Color3.new(1,1,1)
 UpBtn.Font = Enum.Font.GothamBold
 UpBtn.TextScaled = true
 UpBtn.Visible = false
+UpBtn.ZIndex = 999
 UpBtn.Parent = ScreenGui
 Instance.new("UICorner", UpBtn).CornerRadius = UDim.new(0,8)
 
@@ -211,6 +237,7 @@ DownBtn.TextColor3 = Color3.new(1,1,1)
 DownBtn.Font = Enum.Font.GothamBold
 DownBtn.TextScaled = true
 DownBtn.Visible = false
+DownBtn.ZIndex = 999
 DownBtn.Parent = ScreenGui
 Instance.new("UICorner", DownBtn).CornerRadius = UDim.new(0,8)
 
@@ -229,10 +256,10 @@ local function SetupESP(plr)
 		task.wait(0.5)
 		local Highlight = Instance.new("Highlight")
 		Highlight.Name = "ESP_Highlight"
-	Highlight.Adornee = char
+		Highlight.Adornee = char
 		Highlight.FillColor = Color3.fromRGB(0, 170, 255)
 	Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-		Highlight.FillTransparency = 0.5
+	Highlight.FillTransparency = 0.5
 	Highlight.OutlineTransparency = 0
 	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	Highlight.Parent = game.CoreGui
@@ -256,6 +283,7 @@ local function UpdateTPList()
 			btn.TextColor3 = Color3.new(1,1,1)
 			btn.Font = Enum.Font.Gotham
 			btn.TextScaled = true
+			btn.ZIndex = 1001
 			btn.Parent = TPList
 			Instance.new("UICorner", btn).CornerRadius = UDim.new(0,3)
 			btn.MouseButton1Click:Connect(function()
@@ -317,9 +345,9 @@ local function StopFly()
 	UpDown = 0
 end
 
-UpBtn.InputBegan:Connect(function() if Fly_On then UpDown = 1 end end)
+UpBtn.InputBegan:Connect(function() if Fly_On then UpDown = 1 end)
 UpBtn.InputEnded:Connect(function() UpDown = 0 end)
-DownBtn.InputBegan:Connect(function() if Fly_On then UpDown = -1 end)
+DownBtn.InputBegan:Connect(function() if Fly_On then UpDown = -1 end end)
 DownBtn.InputEnded:Connect(function() UpDown = 0 end)
 
 RunService.RenderStepped:Connect(function()
@@ -335,7 +363,7 @@ RunService.RenderStepped:Connect(function()
 	end
 end)
 
--- EVENT TOMBOL MENU
+-- EVENT TOMBOL MENU - FIX KLIK
 Logo.MouseButton1Click:Connect(function()
 	Menu.Visible = not Menu.Visible
 	UpdateTPList()
@@ -349,7 +377,7 @@ ESPBtn.MouseButton1Click:Connect(function()
 	ESPBtn.BackgroundColor3 = ESP_On and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(0, 170, 255)
 	if ESP_On then
 		for _,plr in pairs(Players:GetPlayers()) do SetupESP(plr) end
-		Players.PlayerAdded:Connect(SetupESP)
+	Players.PlayerAdded:Connect(SetupESP)
 	else ClearESP() end
 end)
 
@@ -372,4 +400,10 @@ FlyBtn.MouseButton1Click:Connect(function()
 	if Fly_On then StartFly() else StopFly() end
 end)
 
-print("S Logo ESP V9 FINAL Loaded - by Rama")
+print("S Logo ESP V9.2 FIX Loaded - by Rama")
+
+end)
+
+if not success then
+	warn("S Hub Error: "..err)
+end
