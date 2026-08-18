@@ -1,11 +1,14 @@
--- SCRIPT S LOGO ESP TEMBUS TEMBOK V3 - NO LINE - BUAT DELTA
+-- SCRIPT S LOGO ESP V4 - NOCLIP + INF JUMP - BUAT DELTA
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 -- Variabel
 local ESP_On = false
-local ESP_Objects = {} -- buat nyimpen Highlight
+local NoClip_On = false
+local InfJump_On = false
+local ESP_Objects = {}
 
 -- GUI UTAMA
 local ScreenGui = Instance.new("ScreenGui")
@@ -49,10 +52,10 @@ Logo.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
 end)
 
--- MENU GUI
+-- MENU GUI - aku gedein karena jadi 3 tombol
 local Menu = Instance.new("Frame")
-Menu.Size = UDim2.new(0, 220, 0, 100) -- aku kecilin karena cuma 1 tombol
-Menu.Position = UDim2.new(0, 80, 0.5, -50)
+Menu.Size = UDim2.new(0, 220, 0, 160)
+Menu.Position = UDim2.new(0, 80, 0.5, -80)
 Menu.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Menu.BackgroundTransparency = 0.1
 Menu.Visible = false
@@ -71,17 +74,24 @@ CloseBtn.TextScaled = true
 CloseBtn.Parent = Menu
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0,4)
 
--- TOMBOL ESP PLAYERS
-local ESPBtn = Instance.new("TextButton")
-ESPBtn.Size = UDim2.new(0, 190, 0, 35)
-ESPBtn.Position = UDim2.new(0, 15, 0, 40)
-ESPBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-ESPBtn.Text = "ESP Players: OFF"
-ESPBtn.TextColor3 = Color3.new(1,1,1)
-ESPBtn.Font = Enum.Font.Gotham
-ESPBtn.TextScaled = true
-ESPBtn.Parent = Menu
-Instance.new("UICorner", ESPBtn).CornerRadius = UDim.new(0,6)
+-- FUNGSI BUAT BIKIN TOMBOL BIAR GAMPANG
+local function CreateButton(text, posY)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0, 190, 0, 30)
+	btn.Position = UDim2.new(0, 15, 0, posY)
+	btn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+	btn.Text = text
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.Font = Enum.Font.Gotham
+	btn.TextScaled = true
+	btn.Parent = Menu
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
+	return btn
+end
+
+local ESPBtn = CreateButton("ESP Players: OFF", 40)
+local NoClipBtn = CreateButton("NoClip: OFF", 75)
+local InfJumpBtn = CreateButton("Inf Jump: OFF", 110)
 
 -- FUNGSI CLEAR ESP
 local function ClearESP()
@@ -94,30 +104,47 @@ end
 -- FUNGSI BUAT ESP 1 PLAYER
 local function SetupESP(plr)
 	if plr == LocalPlayer then return end
-	
 	local function onChar(char)
 		task.wait(0.5)
-		
-		-- HIGHLIGHT TEMBUS TEMBOK
 		local Highlight = Instance.new("Highlight")
-	Highlight.Name = "ESP_Highlight"
-	Highlight.Adornee = char
-		Highlight.FillColor = Color3.fromRGB(0, 170, 255) -- biru
-	Highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- outline putih
-	Highlight.FillTransparency = 0.4
-	Highlight.OutlineTransparency = 0
-	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- KUNCI TEMBUS TEMBOK
+		Highlight.Name = "ESP_Highlight"
+		Highlight.Adornee = char
+	Highlight.FillColor = Color3.fromRGB(0, 170, 255)
+		Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+		Highlight.FillTransparency = 0.4
+		Highlight.OutlineTransparency = 0
+		Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- TEMBUS TEMBOK
 		Highlight.Parent = game.CoreGui
 		table.insert(ESP_Objects, Highlight)
 	end
-	
 	if plr.Character then onChar(plr.Character) end
 	plr.CharacterAdded:Connect(onChar)
 end
 
+-- FUNGSI NOCLIP
+RunService.Stepped:Connect(function()
+	if NoClip_On and LocalPlayer.Character then
+		for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+			if part:IsA("BasePart") and part.CanCollide == true then
+				part.CanCollide = false
+			end
+		end
+	end
+end)
+
+-- FUNGSI INFINITE JUMP
+UIS.JumpRequest:Connect(function()
+	if InfJump_On and LocalPlayer.Character then
+		local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+		end
+	end
+end)
+
 -- EVENT TOMBOL
 Logo.MouseButton1Click:Connect(function()
-	Menu.Visible = not Menu.Visible -- klik logo buka/tutup
+	Menu.Visible = not Menu.Visible
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
@@ -127,6 +154,7 @@ end)
 ESPBtn.MouseButton1Click:Connect(function()
 	ESP_On = not ESP_On
 	ESPBtn.Text = "ESP Players: "..(ESP_On and "ON" or "OFF")
+	ESPBtn.BackgroundColor3 = ESP_On and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(0, 170, 255)
 	
 	if ESP_On then
 		for _,plr in pairs(Players:GetPlayers()) do SetupESP(plr) end
@@ -135,3 +163,17 @@ ESPBtn.MouseButton1Click:Connect(function()
 		ClearESP()
 	end
 end)
+
+NoClipBtn.MouseButton1Click:Connect(function()
+	NoClip_On = not NoClip_On
+	NoClipBtn.Text = "NoClip: "..(NoClip_On and "ON" or "OFF")
+	NoClipBtn.BackgroundColor3 = NoClip_On and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(0, 170, 255)
+end)
+
+InfJumpBtn.MouseButton1Click:Connect(function()
+	InfJump_On = not InfJump_On
+	InfJumpBtn.Text = "Inf Jump: "..(InfJump_On and "ON" or "OFF")
+	InfJumpBtn.BackgroundColor3 = InfJump_On and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(0, 170, 255)
+end)
+
+print("S Logo ESP V4 Loaded - ESP + NoClip + InfJump")
