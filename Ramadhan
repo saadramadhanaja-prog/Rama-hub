@@ -1,4 +1,4 @@
--- SCRIPT S LOGO ESP V6 - FLY SPEED - BUAT DELTA
+-- SCRIPT S LOGO ESP V7 - FLY NAIK TURUN - BUAT DELTA
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local UIS = game:GetService("UserInputService")
@@ -9,7 +9,8 @@ local ESP_On = false
 local NoClip_On = false
 local InfJump_On = false
 local Fly_On = false
-local FlySpeed = 50 -- default speed
+local FlySpeed = 50
+local UpDown = 0 -- buat naik turun
 local ESP_Objects = {}
 local BodyGyro, BodyVelocity
 
@@ -48,14 +49,14 @@ end)
 UIS.InputChanged:Connect(function(input)
 	if input == dragInput and dragging then
 		local delta = input.Position - dragStart
-	Logo.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		Logo.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 	end
 end)
 Logo.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
 end)
 
--- MENU GUI - digedein lagi buat slider
+-- MENU GUI
 local Menu = Instance.new("Frame")
 Menu.Size = UDim2.new(0, 220, 0, 240)
 Menu.Position = UDim2.new(0, 80, 0.5, -120)
@@ -117,7 +118,7 @@ SpeedSlider.Parent = Menu
 Instance.new("UICorner", SpeedSlider).CornerRadius = UDim.new(0,5)
 
 local SliderFill = Instance.new("Frame")
-SliderFill.Size = UDim2.new(0.5, 0, 1, 0) -- 50/100 = 0.5
+SliderFill.Size = UDim2.new(0.5, 0, 1, 0)
 SliderFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 SliderFill.BorderSizePixel = 0
 SliderFill.Parent = SpeedSlider
@@ -127,7 +128,7 @@ Instance.new("UICorner", SliderFill).CornerRadius = UDim.new(0,5)
 local sliding = false
 SpeedSlider.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-	sliding = true
+		sliding = true
 	end
 end)
 UIS.InputEnded:Connect(function(input)
@@ -139,10 +140,35 @@ UIS.InputChanged:Connect(function(input)
 	if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
 		local pos = math.clamp((input.Position.X - SpeedSlider.AbsolutePosition.X) / SpeedSlider.AbsoluteSize.X, 0, 1)
 		SliderFill.Size = UDim2.new(pos, 0, 1, 0)
-		FlySpeed = math.floor(pos * 200) -- max speed 200
-		SpeedLabel.Text = "Fly Speed: "..FlySpeed
+		FlySpeed = math.floor(pos * 200)
+	SpeedLabel.Text = "Fly Speed: "..FlySpeed
 	end
 end)
+
+-- TOMBOL NAIK TURUN BUAT MOBILE
+local UpBtn = Instance.new("TextButton")
+UpBtn.Size = UDim2.new(0, 50, 0, 50)
+UpBtn.Position = UDim2.new(1, -60, 0.7, -55)
+UpBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+UpBtn.Text = "UP"
+UpBtn.TextColor3 = Color3.new(1,1,1)
+UpBtn.Font = Enum.Font.GothamBold
+UpBtn.TextScaled = true
+UpBtn.Visible = false
+UpBtn.Parent = ScreenGui
+Instance.new("UICorner", UpBtn).CornerRadius = UDim.new(0,8)
+
+local DownBtn = Instance.new("TextButton")
+DownBtn.Size = UDim2.new(0, 50, 0, 50)
+DownBtn.Position = UDim2.new(1, -60, 0.7, 5)
+DownBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+DownBtn.Text = "DOWN"
+DownBtn.TextColor3 = Color3.new(1,1,1)
+DownBtn.Font = Enum.Font.GothamBold
+DownBtn.TextScaled = true
+DownBtn.Visible = false
+DownBtn.Parent = ScreenGui
+Instance.new("UICorner", DownBtn).CornerRadius = UDim.new(0,8)
 
 -- FUNGSI CLEAR ESP
 local function ClearESP()
@@ -159,13 +185,13 @@ local function SetupESP(plr)
 		task.wait(0.5)
 		local Highlight = Instance.new("Highlight")
 	Highlight.Name = "ESP_Highlight"
-	Highlight.Adornee = char
-	Highlight.FillColor = Color3.fromRGB(0, 170, 255)
-		Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+		Highlight.Adornee = char
+		Highlight.FillColor = Color3.fromRGB(0, 170, 255)
+	Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
 		Highlight.FillTransparency = 0.4
-	Highlight.OutlineTransparency = 0
-	Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-	Highlight.Parent = game.CoreGui
+		Highlight.OutlineTransparency = 0
+		Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		Highlight.Parent = game.CoreGui
 		table.insert(ESP_Objects, Highlight)
 	end
 	if plr.Character then onChar(plr.Character) end
@@ -209,12 +235,24 @@ local function StartFly()
 	BodyVelocity.Velocity = Vector3.new(0,0,0)
 	BodyVelocity.MaxForce = Vector3.new(9e4, 9e4, 9e4)
 	BodyVelocity.Parent = HRP
+	
+	UpBtn.Visible = true
+	DownBtn.Visible = true
 end
 
 local function StopFly()
 	if BodyGyro then BodyGyro:Destroy() BodyGyro = nil end
 	if BodyVelocity then BodyVelocity:Destroy() BodyVelocity = nil end
+	UpBtn.Visible = false
+	DownBtn.Visible = false
+	UpDown = 0
 end
+
+-- Event tombol naik turun
+UpBtn.InputBegan:Connect(function() if Fly_On then UpDown = 1 end end)
+UpBtn.InputEnded:Connect(function() UpDown = 0 end)
+DownBtn.InputBegan:Connect(function() if Fly_On then UpDown = -1 end end)
+DownBtn.InputEnded:Connect(function() UpDown = 0 end)
 
 RunService.RenderStepped:Connect(function()
 	if Fly_On and BodyVelocity and LocalPlayer.Character then
@@ -223,12 +261,13 @@ RunService.RenderStepped:Connect(function()
 		if HRP and Humanoid then
 			BodyGyro.CFrame = workspace.CurrentCamera.CFrame
 			local moveDir = Humanoid.MoveDirection
-			BodyVelocity.Velocity = moveDir * FlySpeed
+			local flyVec = Vector3.new(moveDir.X, UpDown, moveDir.Z) * FlySpeed
+			BodyVelocity.Velocity = flyVec
 		end
 	end
 end)
 
--- EVENT TOMBOL
+-- EVENT TOMBOL MENU
 Logo.MouseButton1Click:Connect(function()
 	Menu.Visible = not Menu.Visible
 end)
@@ -268,8 +307,8 @@ FlyBtn.MouseButton1Click:Connect(function()
 	if Fly_On then
 		StartFly()
 	else
-	StopFly()
+		StopFly()
 	end
 end)
 
-print("S Logo ESP V6 Loaded - ESP + NoClip + InfJump + Fly Speed")
+print("S Logo ESP V7 Loaded - Fly bisa naik turun")
